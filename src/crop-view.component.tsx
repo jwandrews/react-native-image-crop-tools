@@ -1,6 +1,7 @@
-import React, { createRef, forwardRef, useRef } from 'react';
+import React, { Component, createRef, forwardRef, useRef } from 'react';
 import {
   findNodeHandle,
+  HostComponent,
   NativeSyntheticEvent,
   requireNativeComponent,
   StyleProp,
@@ -8,7 +9,11 @@ import {
   ViewStyle,
 } from 'react-native';
 
-const RCTCropView = requireNativeComponent('CropView');
+interface CropViewProps {
+  cropAspectRatio?: { width: number; height: number };
+  onImageSaved: (event: NativeSyntheticEvent<Response>) => void;
+}
+const RCTCropView = requireNativeComponent<CropViewProps>('CropView');
 
 export type Response = {
   uri: string;
@@ -33,25 +38,29 @@ export type CropViewRef = {
 };
 
 export const CropViewForwarded = forwardRef<CropViewRef, Props>((props, ref) => {
-  const viewRef = useRef();
+  const viewRef = useRef<any>(null);
   const { onImageCrop, aspectRatio, ...rest } = props;
 
-  React.useImperativeHandle(ref, () => ({
-    saveImage(preserveTransparency, quality) {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(viewRef.current!),
-        UIManager.getViewManagerConfig('CropView').Commands.saveImage,
-        [preserveTransparency, quality],
-      );
-    },
-    rotateImage(clockwise) {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(viewRef.current!),
-        UIManager.getViewManagerConfig('CropView').Commands.rotateImage,
-        [clockwise],
-      );
-    },
-  }));
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      saveImage(preserveTransparency, quality) {
+        UIManager.dispatchViewManagerCommand(
+          findNodeHandle(viewRef.current),
+          UIManager.getViewManagerConfig('CropView').Commands.saveImage,
+          [preserveTransparency, quality],
+        );
+      },
+      rotateImage(clockwise) {
+        UIManager.dispatchViewManagerCommand(
+          findNodeHandle(viewRef.current),
+          UIManager.getViewManagerConfig('CropView').Commands.rotateImage,
+          [clockwise],
+        );
+      },
+    }),
+    [],
+  );
 
   return (
     <RCTCropView
