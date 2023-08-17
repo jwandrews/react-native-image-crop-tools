@@ -22,8 +22,8 @@ export type CropViewRef = {
     saveImage: (preserveTransparency?: boolean, quality?: number) => void;
     rotateImage: (clockwise?: boolean) => void;
 };
-export declare const CropViewForwarded: React.ForwardRefExoticComponent<Props & React.RefAttributes<CropViewRef>>;
-export declare class CropView extends React.PureComponent<Props> {
+export declare const CropView: React.ForwardRefExoticComponent<Props & React.RefAttributes<CropViewRef>>;
+export declare class CropViewLegacy extends React.PureComponent<Props> {
     static defaultProps: {
         keepAspectRatio: boolean;
         iosDimensionSwapEnabled: boolean;
@@ -31,6 +31,6 @@ export declare class CropView extends React.PureComponent<Props> {
     private viewRef;
     saveImage: (preserveTransparency?: boolean, quality?: number) => void;
     rotateImage: (clockwise?: boolean) => void;
-    render(): JSX.Element;
+    render(): React.JSX.Element;
 }
 export {};

@@ -1,7 +1,6 @@
-import React, { Component, createRef, forwardRef, useRef } from 'react';
+import React, { createRef, forwardRef, useRef } from 'react';
 import {
   findNodeHandle,
-  HostComponent,
   NativeSyntheticEvent,
   requireNativeComponent,
   StyleProp,
@@ -13,7 +12,6 @@ interface CropViewProps {
   cropAspectRatio?: { width: number; height: number };
   onImageSaved: (event: NativeSyntheticEvent<Response>) => void;
 }
-const RCTCropView = requireNativeComponent<CropViewProps>('CropView');
 
 export type Response = {
   uri: string;
@@ -37,21 +35,23 @@ export type CropViewRef = {
   rotateImage: (clockwise?: boolean) => void;
 };
 
-export const CropViewForwarded = forwardRef<CropViewRef, Props>((props, ref) => {
+const RCTCropView = requireNativeComponent<CropViewProps>('CropView');
+
+export const CropView = forwardRef<CropViewRef, Props>((props, ref) => {
   const viewRef = useRef<any>(null);
   const { onImageCrop, aspectRatio, ...rest } = props;
 
   React.useImperativeHandle(
     ref,
     () => ({
-      saveImage(preserveTransparency, quality) {
+      saveImage(preserveTransparency = true, quality = 0.9) {
         UIManager.dispatchViewManagerCommand(
           findNodeHandle(viewRef.current),
           UIManager.getViewManagerConfig('CropView').Commands.saveImage,
           [preserveTransparency, quality],
         );
       },
-      rotateImage(clockwise) {
+      rotateImage(clockwise = true) {
         UIManager.dispatchViewManagerCommand(
           findNodeHandle(viewRef.current),
           UIManager.getViewManagerConfig('CropView').Commands.rotateImage,
@@ -74,12 +74,12 @@ export const CropViewForwarded = forwardRef<CropViewRef, Props>((props, ref) => 
   );
 });
 
-CropViewForwarded.defaultProps = {
+CropView.defaultProps = {
   keepAspectRatio: false,
   iosDimensionSwapEnabled: false,
 };
 
-export class CropView extends React.PureComponent<Props> {
+export class CropViewLegacy extends React.PureComponent<Props> {
   public static defaultProps = {
     keepAspectRatio: false,
     iosDimensionSwapEnabled: false,
