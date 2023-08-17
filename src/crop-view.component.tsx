@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { createRef, forwardRef, useRef } from 'react';
 import {
   findNodeHandle,
   NativeSyntheticEvent,
@@ -10,7 +10,7 @@ import {
 
 const RCTCropView = requireNativeComponent('CropView');
 
-type Response = {
+export type Response = {
   uri: string;
   width: number;
   height: number;
@@ -27,7 +27,50 @@ type Props = {
   iosDimensionSwapEnabled?: boolean;
 };
 
-class CropView extends React.PureComponent<Props> {
+export type CropViewRef = {
+  saveImage: (preserveTransparency?: boolean, quality?: number) => void;
+  rotateImage: (clockwise?: boolean) => void;
+};
+
+export const CropViewForwarded = forwardRef<CropViewRef, Props>((props, ref) => {
+  const viewRef = useRef();
+  const { onImageCrop, aspectRatio, ...rest } = props;
+
+  React.useImperativeHandle(ref, () => ({
+    saveImage(preserveTransparency, quality) {
+      UIManager.dispatchViewManagerCommand(
+        findNodeHandle(viewRef.current!),
+        UIManager.getViewManagerConfig('CropView').Commands.saveImage,
+        [preserveTransparency, quality],
+      );
+    },
+    rotateImage(clockwise) {
+      UIManager.dispatchViewManagerCommand(
+        findNodeHandle(viewRef.current!),
+        UIManager.getViewManagerConfig('CropView').Commands.rotateImage,
+        [clockwise],
+      );
+    },
+  }));
+
+  return (
+    <RCTCropView
+      ref={viewRef}
+      cropAspectRatio={aspectRatio}
+      onImageSaved={(event: NativeSyntheticEvent<Response>) => {
+        onImageCrop!(event.nativeEvent);
+      }}
+      {...rest}
+    />
+  );
+});
+
+CropViewForwarded.defaultProps = {
+  keepAspectRatio: false,
+  iosDimensionSwapEnabled: false,
+};
+
+export class CropView extends React.PureComponent<Props> {
   public static defaultProps = {
     keepAspectRatio: false,
     iosDimensionSwapEnabled: false,
@@ -39,7 +82,7 @@ class CropView extends React.PureComponent<Props> {
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this.viewRef.current!),
       UIManager.getViewManagerConfig('CropView').Commands.saveImage,
-      [preserveTransparency, quality]
+      [preserveTransparency, quality],
     );
   };
 
@@ -47,7 +90,7 @@ class CropView extends React.PureComponent<Props> {
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this.viewRef.current!),
       UIManager.getViewManagerConfig('CropView').Commands.rotateImage,
-      [clockwise]
+      [clockwise],
     );
   };
 
@@ -66,5 +109,3 @@ class CropView extends React.PureComponent<Props> {
     );
   }
 }
-
-export default CropView;

@@ -1,3 +1,1 @@
-import CropView from './crop-view.component';
-
-export { CropView };
+export * from './crop-view.component';
